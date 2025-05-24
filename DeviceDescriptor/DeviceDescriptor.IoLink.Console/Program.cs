@@ -19,7 +19,7 @@ class Program
             {
                 Console.WriteLine("Descriptor loaded successfully!");
                 Console.WriteLine($"Specific variables: {descriptor.Variables.SpecificVariableCollection.Count}");
-                Console.WriteLine($"Process Data In: {descriptor.ProcessData.ProcessDataInCollection.Count}");
+            //    Console.WriteLine($"Process Data In: {descriptor.ProcessData.ProcessDataInCollection.Count}");
             }
             else
             {
