@@ -45,7 +45,9 @@ namespace DeviceDescriptor.IoLink.Source
             var variables = new List<Variable>();
             int varCount = 0, dataRefCount = 0;
             DataType dataType = DataType.CHAR;
-            int lengthinbits = 0; string? minValue = null, maxValue = null, valid = null;
+            int lengthinbits = 0; 
+            string? minValue = null, maxValue = null, valid = null, defaultValue = null;
+            int offset = 0;
             foreach (var varDef in variableDefs ?? Enumerable.Empty<VariableT>())
             {
                 #region CommonAttributes
@@ -80,70 +82,63 @@ namespace DeviceDescriptor.IoLink.Source
                         _ => DataType.Byte
                     };
                     varCount++;
+                    if (varDef is VariableCollectionTVariable v && !string.IsNullOrWhiteSpace(v.defaultValue))                    
+                        defaultValue = v.defaultValue;                    
+                    
                     switch (varDef.Item)
-                    {
-                        case UIntegerT u:
+                    {                        
+                        case UIntegerT u:                            
                             (minValue, maxValue) = GetMinMaxFromValueRange(u.Items);
+                            valid = GetValidValues(u.Items);
+                            lengthinbits = u.bitLength;
                             break;
                         case IntegerT i:
                             (minValue, maxValue) = GetMinMaxFromValueRange(i.Items);
+                            valid = GetValidValues(i.Items);
+                            lengthinbits = i.bitLength;
                             break;
                         case Float32T f:
                             (minValue, maxValue) = GetMinMaxFromValueRange(f.Items);
+                            valid = GetValidValues(f.Items);
+                            lengthinbits = 32;
                             break;
                         case StringT s:
-                            // Handle StringT specific logic
+                            lengthinbits = 8 * s.fixedLength;
                             break;
                         case BooleanT b:
-                            // Handle BooleanT specific logic
+                            valid = GetValidValues(b.SingleValue);                            
+                            lengthinbits = 8;
                             break;
                         case RecordT r:
-                            // Handle RecordT specific logic
+                            lengthinbits = r.bitLength;
                             break;
                         default:
-                            // Handle unknown or unsupported types
+                            // array type not handles
                             continue; // Skip this variable definition
                     }
                 }
                     if(varDef.Item is DatatypeRefT refT)
                     {
-                        // If it's a reference to a datatype, we can extract the ID
                         var dtypeId = refT.datatypeId;
                         dataRefCount++;
                     }
-                    //switch(varDef.Item)
-                    /*var dtypeId = ((DatatypeRefT)varDef.Item).datatypeId; // Assuming 'id' contains the datatype ID.
-                     var dtDef = (dtypeId != null && datatypeMap != null && datatypeMap.ContainsKey(dtypeId))
-                         ? datatypeMap[dtypeId]
-                         : null;
 
-                     DataType dataType = dtDef?.GetType().Name switch
-                     {
-                         nameof(UIntegerT) => DataType.UINT,
-                         nameof(IntegerT) => DataType.INT,
-                         nameof(BooleanT) => DataType.BOOL,
-                         nameof(Float32T) => DataType.Float32,
-                         nameof(StringT) => DataType.CHAR,
-                         nameof(RecordT) => DataType.Record,
-                         _ => DataType.Byte
-                     };*/
 
-                    // Updated constructor call to include all required parameters
                     var variable = new Variable(
                     name: name,
                     index: index,
-                    isDynamic: isDynamic, // Assuming default value for isDynamic
-                    subindex: 0, // Assuming default value for subindex
+                    isDynamic: isDynamic, 
+                    subindex: 0, 
                     access: access,
                     dataType: DataType.UINT,
-                    arrayCount: 0, // Assuming default value for arrayCount
-                    lengthInBits: lengthinbits, // Assuming default value for lengthInBits
-                    offset: 0, // Assuming default value for offset
-                    defaultValue: null, // Assuming default value for default
-                    minimum: null, // Assuming default value for minimum
-                    maximum: null, // Assuming default value for maximum
-                    valid: null, // Assuming default value for valid
-                    value: null // Added missing 'value' parameter
+                    arrayCount: 1, //Can't handle array. Rerely used
+                    lengthInBits: lengthinbits, 
+                    offset: offset, 
+                    defaultValue: defaultValue, 
+                    minimum: minValue, 
+                    maximum: maxValue, 
+                    valid: valid, 
+                    value: null 
                 );
 
                 variables.Add(variable);
@@ -151,10 +146,10 @@ namespace DeviceDescriptor.IoLink.Source
 
             var deviceVariables = new DeviceVariables<Variable>
             {
-                SpecificVariableCollection = variables,
-                StandardVariableCollection = new List<Variable>(), // Assuming empty collections
-                SystemVariableCollection = new List<Variable>(),   // Assuming empty collections
-                CommandCollection = new List<Variable>()          // Assuming empty collections
+                SpecificVariableCollection = variables, //in progress..
+                StandardVariableCollection = new List<Variable>(), 
+                SystemVariableCollection = new List<Variable>(),  
+                CommandCollection = new List<Variable>()          
             };
 
             var descriptor = new BasicDescriptor<Variable>(
@@ -181,70 +176,21 @@ namespace DeviceDescriptor.IoLink.Source
             };
         }
 
-        /*private void GetValues(DataType type, int lengthInBits, out string? min, out string? max, out string[]? valid)
+        public static string? GetValidValues(AbstractValueT[]? valueRange)
         {
-            DatatypeT? dtDef = null;
-            string? dtypeId = null;
-            string? minValue = null;
-            string? maxValue = null;
-            string? valid = null;
-            int lengthInBits = 0;
-            DataType dataType = DataType.Byte;
+            if (valueRange == null)
+                return null;
 
-            // 1. Resolve datatype
-            if (varDef.Item is DatatypeRefT refT)
+            var values = valueRange.Select(v => v switch
             {
-                dtypeId = refT.datatypeId;
-                if (dtypeId != null && datatypeMap != null && datatypeMap.TryGetValue(dtypeId, out var resolved))
-                    dtDef = resolved;
-            }
-            else if (varDef.Item is DatatypeT inlineDt)
-            {
-                dtDef = inlineDt;
-            }
+                UIntegerValueT u => u.value.ToString(),
+                IntegerValueT i => i.value.ToString(),
+                Float32ValueT f => f.value.ToString(CultureInfo.InvariantCulture),
+                BooleanValueT b => b.value.ToString(),
+                _ => null
+            }).Where(s => s != null);
 
-            // 2. Extract min/max/valid from known numeric types
-            switch (dtDef)
-            {
-                case UIntegerT u:
-                    lengthInBits = u.bitLength;
-                    dataType = DataType.UINT;
-                    if (u.Items?.OfType<UIntegerValueRangeT>().FirstOrDefault() is UIntegerValueRangeT uRange)
-                    {
-                        minValue = uRange.lowerValue.ToString();
-                        maxValue = uRange.upperValue.ToString();
-                    }
-                    else if (u.Items != null)
-                    {
-                        valid = string.Join(",", u.Items.OfType<UIntegerSingleValueT>().Select(s => s.value.ToString()));
-                    }
-                    break;
-
-                case IntegerT i:
-                    lengthInBits = i.bitLength;
-                    dataType = DataType.INT;
-                    if (i.Items?.OfType<IntegerValueRangeT>().FirstOrDefault() is IntegerValueRangeT iRange)
-                    {
-                        minValue = iRange.lowerValue.ToString();
-                        maxValue = iRange.upperValue.ToString();
-                    }
-                    else if (i.Items != null)
-                    {
-                        valid = string.Join(",", i.Items.OfType<IntegerSingleValueT>().Select(s => s.value.ToString()));
-                    }
-                    break;
-
-                case Float32T f:
-                    lengthInBits = f.bitLength;
-                    dataType = DataType.Float32;
-                    if (f.Items?.OfType<Float32ValueRangeT>().FirstOrDefault() is Float32ValueRangeT fRange)
-                    {
-                        minValue = fRange.lowerValue.ToString("G", CultureInfo.InvariantCulture);
-                        maxValue = fRange.upperValue.ToString("G", CultureInfo.InvariantCulture);
-                    }
-                    break;
-            }
-
-        }*/
+            return string.Join(",", values!);
+        }    
     }
 }
