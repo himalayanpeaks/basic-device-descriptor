@@ -4,10 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OneDriver.Framework" Version="1.5.0" />
+	<None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
