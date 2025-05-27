@@ -1,10 +1,11 @@
 ﻿using DataType = DeviceDescriptor.Abstract.Definition.DataType;
 using AccessType = DeviceDescriptor.Abstract.Definition.AccessType;
 using OneDriver.Framework.Base;
+using OneDriver.Framework.Module.Parameter;
 
 namespace DeviceDescriptor.Abstract.Variables
 {
-    public class BasicVariable : PropertyHandlers, IParameter
+    public class BasicVariable : BaseChannelParam
     {
         private AccessType _access;
         private int _arrayCount;
@@ -13,21 +14,19 @@ namespace DeviceDescriptor.Abstract.Variables
         private int _index;
         private int _lengthInBits;
         private string? _maximum; //array of min, max
-        private string? _minimum;
-        private string _name;
+        private string? _minimum;        
         private string? _valid;
         private string? _value;
         private int _offset;
 
-        public BasicVariable(string name)
-        {
-            _name = name;
+        public BasicVariable(string name) : base(name)
+        {            
         }
 
         public BasicVariable(string name, int index, AccessType access, DataType dataType, int arrayCount,
             int lengthInBits, int offset,
-            string? value, string? @default, string? minimum, string? maximum, string? valid)
-        {
+            string? value, string? @default, string? minimum, string? maximum, string? valid) : base(name)
+        {            
             _index = index;
             _access = access;
             _dataType = dataType;
@@ -37,17 +36,10 @@ namespace DeviceDescriptor.Abstract.Variables
             _default = @default;
             _maximum = maximum;
             _minimum = minimum;
-            _name = name;
             _valid = valid;
             _offset = offset;
         }
 
-
-        public string Name
-        {
-            get => _name;
-            set => SetProperty(ref _name, value);
-        }
         public int Offset
         {
             get => _offset;
