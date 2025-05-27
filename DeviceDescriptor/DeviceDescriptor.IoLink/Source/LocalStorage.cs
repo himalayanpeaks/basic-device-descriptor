@@ -55,11 +55,13 @@ namespace DeviceDescriptor.IoLink.Source
 
                 if (varDef.Item is DatatypeT inlineDt)
                 {
-                    ParseDatatype(inlineDt, datatypeMap!, variables, name, index, 0, 0, isDynamic, access, defaultValue);
+                    ParseDatatype(inlineDt, datatypeMap!, variables, name, index, 0, 0, 
+                        isDynamic, access, defaultValue, varDef.RecordItemInfo);
                 }
                 else if (varDef.Item is DatatypeRefT refT && datatypeMap != null && datatypeMap.TryGetValue(refT.datatypeId, out var dtDef))
                 {
-                    ParseDatatype(dtDef, datatypeMap, variables, name, index, 0, 0, isDynamic, access, defaultValue);
+                    ParseDatatype(dtDef, datatypeMap, variables, name, index, 0, 0, 
+                        isDynamic, access, defaultValue, varDef.RecordItemInfo);
                 }
             }
 
@@ -87,7 +89,8 @@ namespace DeviceDescriptor.IoLink.Source
             int offset,
             bool isDynamic,
             AccessType access,
-            string? defaultValue)
+            string? defaultValue,
+            RecordItemInfoT[] recordItemInfo)
         {
             DataType dataType = DataType.Byte;
             int lengthInBits = 0;
@@ -148,15 +151,15 @@ namespace DeviceDescriptor.IoLink.Source
                             );
 
                     variables.Add(local);
+                    int count = 0;
                     foreach (var item in r.RecordItem)
                     {
-                       
                         string subId = item.Name.textId;
                         var dtypeId = item.Item is DatatypeRefT refT ? refT.datatypeId : null;
                         if (dtypeId != null && datatypeMap.TryGetValue(dtypeId, out var nestedType))
                         {
                             ParseDatatype(nestedType, datatypeMap, variables, subId, index, 
-                                item.subindex, item.bitOffset, isDynamic, access, null);
+                                item.subindex, item.bitOffset, isDynamic, access, recordItemInfo[count++].defaultValue, null);
                         }
                     }
                     return; // no direct variable to add here
