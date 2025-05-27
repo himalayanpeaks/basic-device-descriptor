@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using DataType = DeviceDescriptor.Abstract.Definition.DataType;
+﻿using DataType = DeviceDescriptor.Abstract.Definition.DataType;
 using AccessType = DeviceDescriptor.Abstract.Definition.AccessType;
 using OneDriver.Framework.Base;
 
