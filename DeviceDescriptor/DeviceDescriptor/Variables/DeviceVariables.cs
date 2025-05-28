@@ -1,15 +1,15 @@
-﻿using OneDriver.Framework.Base;
+﻿using OneDriver.Framework.Module.Parameter;
 
 namespace DeviceDescriptor.Abstract.Variables
 {
-    public class DeviceVariables<TVariable> : PropertyHandlers where TVariable : BasicVariable
+    public class DeviceVariables<TVariable> : BaseChannelParam where TVariable : BasicVariable
     {
         private List<TVariable> specificVariableCollection;
         private List<TVariable> standardVariableCollection;
         private List<TVariable> systemVariableCollection;
         private List<TVariable> commandCollection;
 
-        public DeviceVariables()
+        public DeviceVariables(string name) : base(name)
         {
             specificVariableCollection = new List<TVariable>();
             standardVariableCollection = new List<TVariable>();
