@@ -1,6 +1,5 @@
 ﻿using DataType = DeviceDescriptor.Abstract.Definition.DataType;
 using AccessType = DeviceDescriptor.Abstract.Definition.AccessType;
-using OneDriver.Framework.Base;
 using OneDriver.Framework.Module.Parameter;
 
 namespace DeviceDescriptor.Abstract.Variables

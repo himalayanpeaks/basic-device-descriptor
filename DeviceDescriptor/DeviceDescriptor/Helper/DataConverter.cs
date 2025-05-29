@@ -3,7 +3,7 @@ using Serilog;
 using static DeviceDescriptor.Abstract.Definition;
 
 
-namespace OneDriver.Helper
+namespace DeviceDescriptor.Abstract.Helper
 {
     public static class DataConverter
     {
