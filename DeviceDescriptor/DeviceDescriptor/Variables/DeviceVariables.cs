@@ -8,6 +8,7 @@ namespace DeviceDescriptor.Abstract.Variables
         private List<TVariable> standardVariableCollection;
         private List<TVariable> systemVariableCollection;
         private List<TVariable> commandCollection;
+        private ProcessData<TVariable> processData;
 
         public DeviceVariables(string name) : base(name)
         {
@@ -15,6 +16,7 @@ namespace DeviceDescriptor.Abstract.Variables
             standardVariableCollection = new List<TVariable>();
             systemVariableCollection = new List<TVariable>();
             commandCollection = new List<TVariable>();
+            processData = new ProcessData<TVariable>();
         }
 
         public List<TVariable> StandardVariableCollection
@@ -39,6 +41,11 @@ namespace DeviceDescriptor.Abstract.Variables
         {
             get => commandCollection;
             set => SetProperty(ref commandCollection, value);
+        }
+        public ProcessData<TVariable> ProcessData
+        {
+            get => processData;
+            set => SetProperty(ref processData, value);
         }
     }
 }
