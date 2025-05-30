@@ -8,7 +8,7 @@ namespace DeviceDescriptor.Abstract
         private DeviceVariables<TVariable> variables;
         
 
-        public BasicDescriptor(string name, DeviceVariables<TVariable> variables, ProcessData<TVariable> processData) : base(name)
+        public BasicDescriptor(string name, DeviceVariables<TVariable> variables) : base(name)
         {
             this.variables = variables;
             
